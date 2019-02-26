@@ -28,7 +28,7 @@ func checkContentType(t *testing.T, resp *httptest.ResponseRecorder, contentType
 }
 
 func TestResponder(t *testing.T) {
-	m := NewDefaultResponder()
+	m := NewDefault()
 	req := httptest.NewRequest("GET", "https://aslant.site/", nil)
 
 	t.Run("skip", func(t *testing.T) {
@@ -38,7 +38,7 @@ func TestResponder(t *testing.T) {
 			done = true
 			return nil
 		}
-		fn := NewResponder(Config{
+		fn := New(Config{
 			Skipper: func(c *cod.Context) bool {
 				return true
 			},
@@ -58,7 +58,7 @@ func TestResponder(t *testing.T) {
 			done = true
 			return nil
 		}
-		fn := NewResponder(Config{})
+		fn := New(Config{})
 		err := fn(c)
 		if err != nil ||
 			!done {
