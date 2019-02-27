@@ -131,6 +131,6 @@ func TestResponder(t *testing.T) {
 		})
 		resp := httptest.NewRecorder()
 		d.ServeHTTP(resp, req)
-		checkResponse(t, resp, 500, "func() is unsupported type")
+		checkResponse(t, resp, 500, `{"statusCode":500,"message":"func() is unsupported type","exception":true}`)
 	})
 }

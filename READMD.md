@@ -1,5 +1,7 @@
 # cod-responder
 
+[![Build Status](https://img.shields.io/travis/vicanso/cod-responder.svg?label=linux+build)](https://travis-ci.org/vicanso/cod-responder)
+
 Responder middleware for cod, it can convert `Context.Body` to json data. By this middleware, it's more simple for successful response.
 
 

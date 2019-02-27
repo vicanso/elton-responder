@@ -32,8 +32,8 @@ type (
 )
 
 const (
-	// ErrCategoryResponder responder error category
-	ErrCategoryResponder = "cod-responder"
+	// ErrCategory responder error category
+	ErrCategory = "cod-responder"
 )
 
 var (
@@ -42,7 +42,7 @@ var (
 	errInvalidResponse = &hes.Error{
 		StatusCode: 500,
 		Message:    "invalid response",
-		Category:   ErrCategoryResponder,
+		Category:   ErrCategory,
 	}
 )
 
@@ -106,9 +106,13 @@ func New(config Config) cod.Handler {
 				// 转换为json
 				buf, err := json.Marshal(c.Body)
 				if err != nil {
-					c.SetHeader(ct, cod.MIMETextPlain)
+					c.Cod(nil).EmitError(c, err)
 					statusCode = http.StatusInternalServerError
-					body = []byte(err.Error())
+					he := hes.NewWithErrorStatusCode(err, statusCode)
+					he.Exception = true
+					c.SetHeader(ct, cod.MIMEApplicationJSON)
+					body, _ = json.Marshal(he)
+					err = nil
 				} else {
 					if !hadContentType {
 						c.SetHeader(ct, cod.MIMEApplicationJSON)
@@ -119,7 +123,6 @@ func New(config Config) cod.Handler {
 		}
 		c.BodyBuffer = bytes.NewBuffer(body)
 		c.StatusCode = statusCode
-
 		return nil
 	}
 }
