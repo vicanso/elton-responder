@@ -34,3 +34,8 @@ func main() {
 	d.ListenAndServe(":7001")
 }
 ```
+
+## API
+
+- `Config.Skipper` skipper function to skip middleware
+- `Config.Fastest` if set true will use the `json-iterator` fastest config for better performance

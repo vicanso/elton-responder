@@ -28,6 +28,8 @@ type (
 	// Config response config
 	Config struct {
 		Skipper cod.Skipper
+		// Fastest set to true will use fast json
+		Fastest bool
 	}
 )
 
@@ -37,7 +39,8 @@ const (
 )
 
 var (
-	json = jsoniter.ConfigCompatibleWithStandardLibrary
+	standardJSON = jsoniter.ConfigCompatibleWithStandardLibrary
+	fastJSON     = jsoniter.ConfigFastest
 	// errInvalidResponse invalid response(body an status is nil)
 	errInvalidResponse = &hes.Error{
 		StatusCode: 500,
@@ -56,6 +59,10 @@ func New(config Config) cod.Handler {
 	skipper := config.Skipper
 	if skipper == nil {
 		skipper = cod.DefaultSkipper
+	}
+	marshal := standardJSON.Marshal
+	if config.Fastest {
+		marshal = fastJSON.Marshal
 	}
 	return func(c *cod.Context) (err error) {
 		if skipper(c) {
@@ -104,14 +111,14 @@ func New(config Config) cod.Handler {
 				body = c.Body.([]byte)
 			default:
 				// 转换为json
-				buf, err := json.Marshal(c.Body)
+				buf, err := marshal(c.Body)
 				if err != nil {
 					c.Cod(nil).EmitError(c, err)
 					statusCode = http.StatusInternalServerError
 					he := hes.NewWithErrorStatusCode(err, statusCode)
 					he.Exception = true
 					c.SetHeader(ct, cod.MIMEApplicationJSON)
-					body, _ = json.Marshal(he)
+					body, _ = marshal(he)
 					err = nil
 				} else {
 					if !hadContentType {

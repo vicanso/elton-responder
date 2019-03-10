@@ -2,7 +2,9 @@ package responder
 
 import (
 	"bytes"
+	"encoding/json"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/vicanso/cod"
@@ -133,4 +135,71 @@ func TestResponder(t *testing.T) {
 		d.ServeHTTP(resp, req)
 		checkResponse(t, resp, 500, `{"statusCode":500,"message":"func() is unsupported type","exception":true}`)
 	})
+}
+
+type HelloWord struct {
+	Content string  `json:"content,omitempty"`
+	Size    int     `json:"size,omitempty"`
+	Price   float32 `json:"price,omitempty"`
+	VIP     bool    `json:"vip,omitempty"`
+}
+
+func BenchmarkJSON(b *testing.B) {
+	arr := make([]string, 0)
+	for i := 0; i < 100; i++ {
+		arr = append(arr, "花褪残红青杏小。燕子飞时，绿水人家绕。枝上柳绵吹又少，天涯何处无芳草！")
+	}
+	content := strings.Join(arr, "\n")
+	data := &HelloWord{
+		Content: content,
+		Size:    100,
+		Price:   10.12,
+		VIP:     true,
+	}
+	for i := 0; i < b.N; i++ {
+		_, err := json.Marshal(data)
+		if err != nil {
+			b.Fatalf("json marshal fail, %v", err)
+		}
+	}
+}
+
+func BenchmarkStandardJSON(b *testing.B) {
+	arr := make([]string, 0)
+	for i := 0; i < 100; i++ {
+		arr = append(arr, "花褪残红青杏小。燕子飞时，绿水人家绕。枝上柳绵吹又少，天涯何处无芳草！")
+	}
+	content := strings.Join(arr, "\n")
+	data := &HelloWord{
+		Content: content,
+		Size:    100,
+		Price:   10.12,
+		VIP:     true,
+	}
+	for i := 0; i < b.N; i++ {
+		_, err := standardJSON.Marshal(data)
+		if err != nil {
+			b.Fatalf("standard json marshal fail, %v", err)
+		}
+	}
+}
+
+func BenchmarkFastJSON(b *testing.B) {
+	arr := make([]string, 0)
+	for i := 0; i < 100; i++ {
+		arr = append(arr, "花褪残红青杏小。燕子飞时，绿水人家绕。枝上柳绵吹又少，天涯何处无芳草！")
+	}
+	content := strings.Join(arr, "\n")
+	data := &HelloWord{
+		Content: content,
+		Size:    100,
+		Price:   10.12,
+		VIP:     true,
+	}
+	for i := 0; i < b.N; i++ {
+		_, err := fastJSON.Marshal(data)
+		if err != nil {
+			b.Fatalf("fast json marshal fail, %v", err)
+		}
+	}
 }
