@@ -43,6 +43,7 @@ var (
 	fastJSON     = jsoniter.ConfigFastest
 	// errInvalidResponse invalid response(body an status is nil)
 	errInvalidResponse = &hes.Error{
+		Exception:  true,
 		StatusCode: 500,
 		Message:    "invalid response",
 		Category:   ErrCategory,
