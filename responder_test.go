@@ -164,7 +164,7 @@ func BenchmarkJSON(b *testing.B) {
 	}
 }
 
-func BenchmarkStandardJSON(b *testing.B) {
+func getBenchmarkData() *HelloWord {
 	arr := make([]string, 0)
 	for i := 0; i < 100; i++ {
 		arr = append(arr, "花褪残红青杏小。燕子飞时，绿水人家绕。枝上柳绵吹又少，天涯何处无芳草！")
@@ -176,6 +176,11 @@ func BenchmarkStandardJSON(b *testing.B) {
 		Price:   10.12,
 		VIP:     true,
 	}
+	return data
+}
+
+func BenchmarkStandardJSON(b *testing.B) {
+	data := getBenchmarkData()
 	for i := 0; i < b.N; i++ {
 		_, err := standardJSON.Marshal(data)
 		if err != nil {
@@ -185,17 +190,7 @@ func BenchmarkStandardJSON(b *testing.B) {
 }
 
 func BenchmarkFastJSON(b *testing.B) {
-	arr := make([]string, 0)
-	for i := 0; i < 100; i++ {
-		arr = append(arr, "花褪残红青杏小。燕子飞时，绿水人家绕。枝上柳绵吹又少，天涯何处无芳草！")
-	}
-	content := strings.Join(arr, "\n")
-	data := &HelloWord{
-		Content: content,
-		Size:    100,
-		Price:   10.12,
-		VIP:     true,
-	}
+	data := getBenchmarkData()
 	for i := 0; i < b.N; i++ {
 		_, err := fastJSON.Marshal(data)
 		if err != nil {
