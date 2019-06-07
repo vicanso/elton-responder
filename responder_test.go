@@ -3,37 +3,41 @@ package responder
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/vicanso/cod"
 )
 
 func checkResponse(t *testing.T, resp *httptest.ResponseRecorder, code int, data string) {
-	if resp.Body.String() != data ||
-		resp.Code != code {
-		t.Fatalf("check response fail")
-	}
+	assert := assert.New(t)
+	assert.Equal(resp.Body.String(), data)
+	assert.Equal(resp.Code, code)
 }
 
 func checkJSON(t *testing.T, resp *httptest.ResponseRecorder) {
-	if resp.Header().Get(cod.HeaderContentType) != cod.MIMEApplicationJSON {
-		t.Fatalf("response content type should be json")
-	}
+	assert := assert.New(t)
+	assert.Equal(resp.Header().Get(cod.HeaderContentType), cod.MIMEApplicationJSON)
 }
 
 func checkContentType(t *testing.T, resp *httptest.ResponseRecorder, contentType string) {
-	if resp.Header().Get(cod.HeaderContentType) != contentType {
-		t.Fatalf("response content type check fail")
-	}
+	assert := assert.New(t)
+	assert.Equal(resp.Header().Get(cod.HeaderContentType), contentType)
 }
 
 func TestResponder(t *testing.T) {
-	m := NewDefault()
+	m := New(Config{
+		Fastest: true,
+	})
 	req := httptest.NewRequest("GET", "https://aslant.site/", nil)
 
 	t.Run("skip", func(t *testing.T) {
+		assert := assert.New(t)
 		c := cod.NewContext(nil, nil)
 		done := false
 		c.Next = func() error {
@@ -46,13 +50,27 @@ func TestResponder(t *testing.T) {
 			},
 		})
 		err := fn(c)
-		if err != nil ||
-			!done {
-			t.Fatalf("skip fail")
+		assert.Nil(err)
+		assert.True(done)
+	})
+
+	t.Run("return error", func(t *testing.T) {
+		assert := assert.New(t)
+		customErr := errors.New("abcd")
+		c := cod.NewContext(nil, nil)
+		done := false
+		c.Next = func() error {
+			done = true
+			return customErr
 		}
+		fn := NewDefault()
+		err := fn(c)
+		assert.Equal(err, customErr)
+		assert.True(done)
 	})
 
 	t.Run("set BodyBuffer", func(t *testing.T) {
+		assert := assert.New(t)
 		c := cod.NewContext(nil, nil)
 		done := false
 		c.Next = func() error {
@@ -62,10 +80,8 @@ func TestResponder(t *testing.T) {
 		}
 		fn := New(Config{})
 		err := fn(c)
-		if err != nil ||
-			!done {
-			t.Fatalf("set body buffer should pass")
-		}
+		assert.Nil(err)
+		assert.True(done)
 	})
 
 	t.Run("invalid response", func(t *testing.T) {
@@ -83,14 +99,13 @@ func TestResponder(t *testing.T) {
 		d := cod.New()
 		d.Use(m)
 		d.GET("/", func(c *cod.Context) error {
-			c.SetContentTypeByExt(".html")
 			c.Body = "abc"
 			return nil
 		})
 		resp := httptest.NewRecorder()
 		d.ServeHTTP(resp, req)
 		checkResponse(t, resp, 200, "abc")
-		checkContentType(t, resp, "text/html; charset=utf-8")
+		checkContentType(t, resp, "text/plain; charset=UTF-8")
 	})
 
 	t.Run("return bytes", func(t *testing.T) {
@@ -197,4 +212,21 @@ func BenchmarkFastJSON(b *testing.B) {
 			b.Fatalf("fast json marshal fail, %v", err)
 		}
 	}
+}
+
+// https://stackoverflow.com/questions/50120427/fail-unit-tests-if-coverage-is-below-certain-percentage
+func TestMain(m *testing.M) {
+	// call flag.Parse() here if TestMain uses flags
+	rc := m.Run()
+
+	// rc 0 means we've passed,
+	// and CoverMode will be non empty if run with -cover
+	if rc == 0 && testing.CoverMode() != "" {
+		c := testing.Coverage()
+		if c < 0.9 {
+			fmt.Println("Tests passed but coverage failed at", c)
+			rc = -1
+		}
+	}
+	os.Exit(rc)
 }
