@@ -150,6 +150,20 @@ func TestResponder(t *testing.T) {
 		d.ServeHTTP(resp, req)
 		checkResponse(t, resp, 500, `{"statusCode":500,"message":"func() is unsupported type","exception":true}`)
 	})
+
+	t.Run("reader body", func(t *testing.T) {
+		assert := assert.New(t)
+		d := cod.New()
+		d.Use(m)
+		d.GET("/", func(c *cod.Context) error {
+			c.Body = bytes.NewReader([]byte("abcd"))
+			return nil
+		})
+		resp := httptest.NewRecorder()
+		d.ServeHTTP(resp, req)
+		assert.Equal(resp.Code, 200)
+		assert.Equal(resp.Body.String(), "abcd")
+	})
 }
 
 type HelloWord struct {

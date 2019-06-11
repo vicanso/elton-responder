@@ -83,6 +83,10 @@ func New(config Config) cod.Handler {
 			err = errInvalidResponse
 			return
 		}
+		// 如果body是reader，则跳过
+		if c.IsReaderBody() {
+			return
+		}
 
 		ct := cod.HeaderContentType
 
