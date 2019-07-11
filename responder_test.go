@@ -140,6 +140,7 @@ func TestResponder(t *testing.T) {
 	})
 
 	t.Run("json marshal fail", func(t *testing.T) {
+		assert := assert.New(t)
 		d := cod.New()
 		d.Use(m)
 		d.GET("/", func(c *cod.Context) error {
@@ -148,7 +149,9 @@ func TestResponder(t *testing.T) {
 		})
 		resp := httptest.NewRecorder()
 		d.ServeHTTP(resp, req)
-		checkResponse(t, resp, 500, `{"statusCode":500,"message":"func() is unsupported type","exception":true}`)
+		assert.Equal(500, resp.Code)
+		fmt.Println(resp.Body.String())
+		assert.True(strings.HasSuffix(resp.Body.String(), `"statusCode":500,"message":"func() is unsupported type","exception":true}`))
 	})
 
 	t.Run("reader body", func(t *testing.T) {

@@ -118,12 +118,12 @@ func New(config Config) cod.Handler {
 				// 转换为json
 				buf, err := marshal(c.Body)
 				if err != nil {
-					c.Cod(nil).EmitError(c, err)
+					c.Cod().EmitError(c, err)
 					statusCode = http.StatusInternalServerError
 					he := hes.NewWithErrorStatusCode(err, statusCode)
 					he.Exception = true
 					c.SetHeader(ct, cod.MIMEApplicationJSON)
-					body, _ = marshal(he)
+					body = he.ToJSON()
 					err = nil
 				} else {
 					if !hadContentType {
