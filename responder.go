@@ -18,7 +18,7 @@ import (
 	"bytes"
 	"net/http"
 
-	"github.com/vicanso/cod"
+	"github.com/vicanso/elton"
 	"github.com/vicanso/hes"
 
 	jsoniter "github.com/json-iterator/go"
@@ -27,7 +27,7 @@ import (
 type (
 	// Config response config
 	Config struct {
-		Skipper cod.Skipper
+		Skipper elton.Skipper
 		// Fastest set to true will use fast json
 		Fastest bool
 	}
@@ -35,7 +35,7 @@ type (
 
 const (
 	// ErrCategory responder error category
-	ErrCategory = "cod-responder"
+	ErrCategory = "elton-responder"
 )
 
 var (
@@ -51,21 +51,21 @@ var (
 )
 
 // NewDefault create a default responder
-func NewDefault() cod.Handler {
+func NewDefault() elton.Handler {
 	return New(Config{})
 }
 
 // New create a responder
-func New(config Config) cod.Handler {
+func New(config Config) elton.Handler {
 	skipper := config.Skipper
 	if skipper == nil {
-		skipper = cod.DefaultSkipper
+		skipper = elton.DefaultSkipper
 	}
 	marshal := standardJSON.Marshal
 	if config.Fastest {
 		marshal = fastJSON.Marshal
 	}
-	return func(c *cod.Context) (err error) {
+	return func(c *elton.Context) (err error) {
 		if skipper(c) {
 			return c.Next()
 		}
@@ -88,7 +88,7 @@ func New(config Config) cod.Handler {
 			return
 		}
 
-		ct := cod.HeaderContentType
+		ct := elton.HeaderContentType
 
 		hadContentType := false
 		// 判断是否已设置响应头的Content-Type
@@ -106,28 +106,28 @@ func New(config Config) cod.Handler {
 			switch c.Body.(type) {
 			case string:
 				if !hadContentType {
-					c.SetHeader(ct, cod.MIMETextPlain)
+					c.SetHeader(ct, elton.MIMETextPlain)
 				}
 				body = []byte(c.Body.(string))
 			case []byte:
 				if !hadContentType {
-					c.SetHeader(ct, cod.MIMEBinary)
+					c.SetHeader(ct, elton.MIMEBinary)
 				}
 				body = c.Body.([]byte)
 			default:
 				// 转换为json
 				buf, err := marshal(c.Body)
 				if err != nil {
-					c.Cod().EmitError(c, err)
+					c.Elton().EmitError(c, err)
 					statusCode = http.StatusInternalServerError
 					he := hes.NewWithErrorStatusCode(err, statusCode)
 					he.Exception = true
-					c.SetHeader(ct, cod.MIMEApplicationJSON)
+					c.SetHeader(ct, elton.MIMEApplicationJSON)
 					body = he.ToJSON()
 					err = nil
 				} else {
 					if !hadContentType {
-						c.SetHeader(ct, cod.MIMEApplicationJSON)
+						c.SetHeader(ct, elton.MIMEApplicationJSON)
 					}
 					body = buf
 				}

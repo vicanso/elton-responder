@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/vicanso/cod"
+	"github.com/vicanso/elton"
 )
 
 func checkResponse(t *testing.T, resp *httptest.ResponseRecorder, code int, data string) {
@@ -22,12 +22,12 @@ func checkResponse(t *testing.T, resp *httptest.ResponseRecorder, code int, data
 
 func checkJSON(t *testing.T, resp *httptest.ResponseRecorder) {
 	assert := assert.New(t)
-	assert.Equal(resp.Header().Get(cod.HeaderContentType), cod.MIMEApplicationJSON)
+	assert.Equal(resp.Header().Get(elton.HeaderContentType), elton.MIMEApplicationJSON)
 }
 
 func checkContentType(t *testing.T, resp *httptest.ResponseRecorder, contentType string) {
 	assert := assert.New(t)
-	assert.Equal(resp.Header().Get(cod.HeaderContentType), contentType)
+	assert.Equal(resp.Header().Get(elton.HeaderContentType), contentType)
 }
 
 func TestResponder(t *testing.T) {
@@ -38,14 +38,14 @@ func TestResponder(t *testing.T) {
 
 	t.Run("skip", func(t *testing.T) {
 		assert := assert.New(t)
-		c := cod.NewContext(nil, nil)
+		c := elton.NewContext(nil, nil)
 		done := false
 		c.Next = func() error {
 			done = true
 			return nil
 		}
 		fn := New(Config{
-			Skipper: func(c *cod.Context) bool {
+			Skipper: func(c *elton.Context) bool {
 				return true
 			},
 		})
@@ -57,7 +57,7 @@ func TestResponder(t *testing.T) {
 	t.Run("return error", func(t *testing.T) {
 		assert := assert.New(t)
 		customErr := errors.New("abcd")
-		c := cod.NewContext(nil, nil)
+		c := elton.NewContext(nil, nil)
 		done := false
 		c.Next = func() error {
 			done = true
@@ -71,7 +71,7 @@ func TestResponder(t *testing.T) {
 
 	t.Run("set BodyBuffer", func(t *testing.T) {
 		assert := assert.New(t)
-		c := cod.NewContext(nil, nil)
+		c := elton.NewContext(nil, nil)
 		done := false
 		c.Next = func() error {
 			c.BodyBuffer = bytes.NewBuffer([]byte(""))
@@ -85,20 +85,20 @@ func TestResponder(t *testing.T) {
 	})
 
 	t.Run("invalid response", func(t *testing.T) {
-		d := cod.New()
+		d := elton.New()
 		d.Use(m)
-		d.GET("/", func(c *cod.Context) error {
+		d.GET("/", func(c *elton.Context) error {
 			return nil
 		})
 		resp := httptest.NewRecorder()
 		d.ServeHTTP(resp, req)
-		checkResponse(t, resp, 500, "category=cod-responder, message=invalid response")
+		checkResponse(t, resp, 500, "category=elton-responder, message=invalid response")
 	})
 
 	t.Run("return string", func(t *testing.T) {
-		d := cod.New()
+		d := elton.New()
 		d.Use(m)
-		d.GET("/", func(c *cod.Context) error {
+		d.GET("/", func(c *elton.Context) error {
 			c.Body = "abc"
 			return nil
 		})
@@ -109,25 +109,25 @@ func TestResponder(t *testing.T) {
 	})
 
 	t.Run("return bytes", func(t *testing.T) {
-		d := cod.New()
+		d := elton.New()
 		d.Use(m)
-		d.GET("/", func(c *cod.Context) error {
+		d.GET("/", func(c *elton.Context) error {
 			c.Body = []byte("abc")
 			return nil
 		})
 		resp := httptest.NewRecorder()
 		d.ServeHTTP(resp, req)
 		checkResponse(t, resp, 200, "abc")
-		checkContentType(t, resp, cod.MIMEBinary)
+		checkContentType(t, resp, elton.MIMEBinary)
 	})
 
 	t.Run("return struct", func(t *testing.T) {
 		type T struct {
 			Name string `json:"name,omitempty"`
 		}
-		d := cod.New()
+		d := elton.New()
 		d.Use(m)
-		d.GET("/", func(c *cod.Context) error {
+		d.GET("/", func(c *elton.Context) error {
 			c.Created(&T{
 				Name: "tree.xie",
 			})
@@ -141,9 +141,9 @@ func TestResponder(t *testing.T) {
 
 	t.Run("json marshal fail", func(t *testing.T) {
 		assert := assert.New(t)
-		d := cod.New()
+		d := elton.New()
 		d.Use(m)
-		d.GET("/", func(c *cod.Context) error {
+		d.GET("/", func(c *elton.Context) error {
 			c.Body = func() {}
 			return nil
 		})
@@ -156,9 +156,9 @@ func TestResponder(t *testing.T) {
 
 	t.Run("reader body", func(t *testing.T) {
 		assert := assert.New(t)
-		d := cod.New()
+		d := elton.New()
 		d.Use(m)
-		d.GET("/", func(c *cod.Context) error {
+		d.GET("/", func(c *elton.Context) error {
 			c.Body = bytes.NewReader([]byte("abcd"))
 			return nil
 		})

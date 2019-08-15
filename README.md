@@ -1,26 +1,26 @@
-# cod-responder
+# elton-responder
 
-[![Build Status](https://img.shields.io/travis/vicanso/cod-responder.svg?label=linux+build)](https://travis-ci.org/vicanso/cod-responder)
+[![Build Status](https://img.shields.io/travis/vicanso/elton-responder.svg?label=linux+build)](https://travis-ci.org/vicanso/elton-responder)
 
-Responder middleware for cod, it can convert `Context.Body` to json data. By this middleware, it's more simple for successful response.
+Responder middleware for elton, it can convert `Context.Body` to json data. By this middleware, it's more simple for successful response.
 
 
 ```go
 package main
 
 import (
-	"github.com/vicanso/cod"
+	"github.com/vicanso/elton"
 
-	responder "github.com/vicanso/cod-responder"
+	responder "github.com/vicanso/elton-responder"
 )
 
 func main() {
-	d := cod.New()
+	d := elton.New()
 
 	d.Use(responder.NewDefault())
 
 	// {"name":"tree.xie","id":123}
-	d.GET("/", func(c *cod.Context) (err error) {
+	d.GET("/", func(c *elton.Context) (err error) {
 		c.Body = &struct {
 			Name string `json:"name"`
 			ID   int    `json:"id"`
