@@ -150,8 +150,7 @@ func TestResponder(t *testing.T) {
 		resp := httptest.NewRecorder()
 		d.ServeHTTP(resp, req)
 		assert.Equal(500, resp.Code)
-		fmt.Println(resp.Body.String())
-		assert.True(strings.HasSuffix(resp.Body.String(), `"statusCode":500,"message":"func() is unsupported type","exception":true}`))
+		assert.Equal("message=func() is unsupported type", resp.Body.String())
 	})
 
 	t.Run("reader body", func(t *testing.T) {

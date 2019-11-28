@@ -30,6 +30,10 @@ type (
 		Skipper elton.Skipper
 		// Fastest set to true will use fast json
 		Fastest bool
+		// Marshal custom marshal function
+		Marshal func(v interface{}) ([]byte, error)
+		// ContentType response's content type
+		ContentType string
 	}
 )
 
@@ -61,10 +65,19 @@ func New(config Config) elton.Handler {
 	if skipper == nil {
 		skipper = elton.DefaultSkipper
 	}
-	marshal := standardJSON.Marshal
-	if config.Fastest {
-		marshal = fastJSON.Marshal
+	marshal := config.Marshal
+	// 如果未定义marshal
+	if marshal == nil {
+		marshal = standardJSON.Marshal
+		if config.Fastest {
+			marshal = fastJSON.Marshal
+		}
 	}
+	contentType := config.ContentType
+	if contentType == "" {
+		contentType = elton.MIMEApplicationJSON
+	}
+
 	return func(c *elton.Context) (err error) {
 		if skipper(c) {
 			return c.Next()
@@ -116,21 +129,18 @@ func New(config Config) elton.Handler {
 				body = c.Body.([]byte)
 			default:
 				// 转换为json
-				buf, err := marshal(c.Body)
-				if err != nil {
-					c.Elton().EmitError(c, err)
+				buf, e := marshal(c.Body)
+				if e != nil {
 					statusCode = http.StatusInternalServerError
-					he := hes.NewWithErrorStatusCode(err, statusCode)
+					he := hes.NewWithErrorStatusCode(e, statusCode)
 					he.Exception = true
-					c.SetHeader(ct, elton.MIMEApplicationJSON)
-					body = he.ToJSON()
-					err = nil
-				} else {
-					if !hadContentType {
-						c.SetHeader(ct, elton.MIMEApplicationJSON)
-					}
-					body = buf
+					err = he
+					return
 				}
+				if !hadContentType {
+					c.SetHeader(ct, contentType)
+				}
+				body = buf
 			}
 		}
 		c.BodyBuffer = bytes.NewBuffer(body)
