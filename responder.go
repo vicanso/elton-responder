@@ -16,12 +16,11 @@ package responder
 
 import (
 	"bytes"
+	"encoding/json"
 	"net/http"
 
 	"github.com/vicanso/elton"
 	"github.com/vicanso/hes"
-
-	jsoniter "github.com/json-iterator/go"
 )
 
 type (
@@ -43,8 +42,6 @@ const (
 )
 
 var (
-	standardJSON = jsoniter.ConfigCompatibleWithStandardLibrary
-	fastJSON     = jsoniter.ConfigFastest
 	// errInvalidResponse invalid response(body an status is nil)
 	errInvalidResponse = &hes.Error{
 		Exception:  true,
@@ -68,10 +65,7 @@ func New(config Config) elton.Handler {
 	marshal := config.Marshal
 	// 如果未定义marshal
 	if marshal == nil {
-		marshal = standardJSON.Marshal
-		if config.Fastest {
-			marshal = fastJSON.Marshal
-		}
+		marshal = json.Marshal
 	}
 	contentType := config.ContentType
 	if contentType == "" {

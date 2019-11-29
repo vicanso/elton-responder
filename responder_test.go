@@ -150,7 +150,7 @@ func TestResponder(t *testing.T) {
 		resp := httptest.NewRecorder()
 		d.ServeHTTP(resp, req)
 		assert.Equal(500, resp.Code)
-		assert.Equal("message=func() is unsupported type", resp.Body.String())
+		assert.Equal("message=json: unsupported type: func()", resp.Body.String())
 	})
 
 	t.Run("reader body", func(t *testing.T) {
@@ -175,26 +175,6 @@ type HelloWord struct {
 	VIP     bool    `json:"vip,omitempty"`
 }
 
-func BenchmarkJSON(b *testing.B) {
-	arr := make([]string, 0)
-	for i := 0; i < 100; i++ {
-		arr = append(arr, "花褪残红青杏小。燕子飞时，绿水人家绕。枝上柳绵吹又少，天涯何处无芳草！")
-	}
-	content := strings.Join(arr, "\n")
-	data := &HelloWord{
-		Content: content,
-		Size:    100,
-		Price:   10.12,
-		VIP:     true,
-	}
-	for i := 0; i < b.N; i++ {
-		_, err := json.Marshal(data)
-		if err != nil {
-			b.Fatalf("json marshal fail, %v", err)
-		}
-	}
-}
-
 func getBenchmarkData() *HelloWord {
 	arr := make([]string, 0)
 	for i := 0; i < 100; i++ {
@@ -210,22 +190,12 @@ func getBenchmarkData() *HelloWord {
 	return data
 }
 
-func BenchmarkStandardJSON(b *testing.B) {
+func BenchmarkJSON(b *testing.B) {
 	data := getBenchmarkData()
 	for i := 0; i < b.N; i++ {
-		_, err := standardJSON.Marshal(data)
+		_, err := json.Marshal(data)
 		if err != nil {
-			b.Fatalf("standard json marshal fail, %v", err)
-		}
-	}
-}
-
-func BenchmarkFastJSON(b *testing.B) {
-	data := getBenchmarkData()
-	for i := 0; i < b.N; i++ {
-		_, err := fastJSON.Marshal(data)
-		if err != nil {
-			b.Fatalf("fast json marshal fail, %v", err)
+			b.Fatalf("json marshal fail, %v", err)
 		}
 	}
 }

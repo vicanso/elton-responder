@@ -38,6 +38,6 @@ func main() {
 ## API
 
 - `Config.Skipper` skipper function to skip middleware
-- `Config.Fastest` if set true will use the `json-iterator` fastest config for better performance
+- `Config.Fastest` if set true will use the `json-iterator` fastest config for better performance, deprecated
 - `Config.Marshal` custom marshal function
 - `Config.ContentType` the coontent type for response
