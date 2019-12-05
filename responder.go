@@ -110,20 +110,20 @@ func New(config Config) elton.Handler {
 
 		var body []byte
 		if c.Body != nil {
-			switch c.Body.(type) {
+			switch data := c.Body.(type) {
 			case string:
 				if !hadContentType {
 					c.SetHeader(ct, elton.MIMETextPlain)
 				}
-				body = []byte(c.Body.(string))
+				body = []byte(data)
 			case []byte:
 				if !hadContentType {
 					c.SetHeader(ct, elton.MIMEBinary)
 				}
-				body = c.Body.([]byte)
+				body = data
 			default:
 				// 转换为json
-				buf, e := marshal(c.Body)
+				buf, e := marshal(data)
 				if e != nil {
 					statusCode = http.StatusInternalServerError
 					he := hes.NewWithErrorStatusCode(e, statusCode)

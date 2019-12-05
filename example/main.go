@@ -68,7 +68,7 @@ func main() {
 	marshal := func(v interface{}) ([]byte, error) {
 		return json.Marshal(v)
 	}
-	json.Unmarshal(buf, genInfo)
+	_ = json.Unmarshal(buf, genInfo)
 
 	d.Use(responder.New(responder.Config{
 		Marshal: marshal,
@@ -78,5 +78,8 @@ func main() {
 		return
 	})
 
-	d.ListenAndServe(":3000")
+	err := d.ListenAndServe(":3000")
+	if err != nil {
+		panic(err)
+	}
 }
