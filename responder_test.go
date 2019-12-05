@@ -120,6 +120,21 @@ func TestResponder(t *testing.T) {
 		checkResponse(t, resp, 200, "abc")
 		checkContentType(t, resp, elton.MIMEBinary)
 	})
+	t.Run("return bytes(set content type)", func(t *testing.T) {
+		d := elton.New()
+		d.Use(m)
+		d.GET("/", func(c *elton.Context) error {
+			c.Body = []byte("abc")
+			return nil
+		})
+		resp := httptest.NewRecorder()
+
+		contentType := "abc"
+		resp.Header().Set(elton.HeaderContentType, contentType)
+		d.ServeHTTP(resp, req)
+		checkResponse(t, resp, 200, "abc")
+		checkContentType(t, resp, contentType)
+	})
 
 	t.Run("return struct", func(t *testing.T) {
 		type T struct {
@@ -165,6 +180,19 @@ func TestResponder(t *testing.T) {
 		d.ServeHTTP(resp, req)
 		assert.Equal(resp.Code, 200)
 		assert.Equal(resp.Body.String(), "abcd")
+	})
+
+	t.Run("no content", func(t *testing.T) {
+		assert := assert.New(t)
+		d := elton.New()
+		d.Use(m)
+		d.GET("/", func(c *elton.Context) error {
+			c.Body = []byte("")
+			return nil
+		})
+		resp := httptest.NewRecorder()
+		d.ServeHTTP(resp, req)
+		assert.Equal(resp.Code, 204)
 	})
 }
 

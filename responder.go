@@ -137,8 +137,12 @@ func New(config Config) elton.Handler {
 				body = buf
 			}
 		}
-		c.BodyBuffer = bytes.NewBuffer(body)
-		c.StatusCode = statusCode
+		if len(body) == 0 {
+			c.NoContent()
+		} else {
+			c.BodyBuffer = bytes.NewBuffer(body)
+			c.StatusCode = statusCode
+		}
 		return nil
 	}
 }
