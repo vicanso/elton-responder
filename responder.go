@@ -103,11 +103,6 @@ func New(config Config) elton.Handler {
 			hadContentType = true
 		}
 
-		statusCode := c.StatusCode
-		if statusCode == 0 {
-			statusCode = http.StatusOK
-		}
-
 		var body []byte
 		if c.Body != nil {
 			switch data := c.Body.(type) {
@@ -125,8 +120,7 @@ func New(config Config) elton.Handler {
 				// 转换为json
 				buf, e := marshal(data)
 				if e != nil {
-					statusCode = http.StatusInternalServerError
-					he := hes.NewWithErrorStatusCode(e, statusCode)
+					he := hes.NewWithErrorStatusCode(e, http.StatusInternalServerError)
 					he.Exception = true
 					err = he
 					return
@@ -137,12 +131,15 @@ func New(config Config) elton.Handler {
 				body = buf
 			}
 		}
-		if len(body) == 0 {
-			c.NoContent()
-		} else {
-			c.BodyBuffer = bytes.NewBuffer(body)
-			c.StatusCode = statusCode
+
+		statusCode := c.StatusCode
+		if statusCode == 0 {
+			statusCode = http.StatusOK
 		}
+		if len(body) != 0 {
+			c.BodyBuffer = bytes.NewBuffer(body)
+		}
+		c.StatusCode = statusCode
 		return nil
 	}
 }

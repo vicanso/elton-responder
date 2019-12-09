@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"net/http/httptest"
 	"os"
 	"strings"
@@ -187,12 +188,26 @@ func TestResponder(t *testing.T) {
 		d := elton.New()
 		d.Use(m)
 		d.GET("/", func(c *elton.Context) error {
-			c.Body = []byte("")
+			c.StatusCode = http.StatusNoContent
 			return nil
 		})
 		resp := httptest.NewRecorder()
 		d.ServeHTTP(resp, req)
-		assert.Equal(resp.Code, 204)
+		assert.Equal(resp.Code, http.StatusNoContent)
+	})
+
+	t.Run("accepted(202)", func(t *testing.T) {
+		assert := assert.New(t)
+		d := elton.New()
+		d.Use(m)
+		d.GET("/", func(c *elton.Context) error {
+			c.StatusCode = http.StatusAccepted
+			return nil
+		})
+		resp := httptest.NewRecorder()
+		d.ServeHTTP(resp, req)
+		assert.Empty(resp.Body)
+		assert.Equal(resp.Code, http.StatusAccepted)
 	})
 }
 
