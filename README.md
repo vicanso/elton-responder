@@ -2,7 +2,7 @@
 
 [![Build Status](https://img.shields.io/travis/vicanso/elton-responder.svg?label=linux+build)](https://travis-ci.org/vicanso/elton-responder)
 
-Responder middleware for elton, it can convert `Context.Body` to json data. By this middleware, it's more simple for successful response. More response type can be supported through custom marshal function and content type.
+Responder middleware for elton, it can convert `Context.Body` to json data. Using this middleware, it's more simple for successful response. More response type can be supported through custom marshal function and content type.
 
 
 ```go
@@ -15,12 +15,12 @@ import (
 )
 
 func main() {
-	d := elton.New()
+	e := elton.New()
 
-	d.Use(responder.NewDefault())
+	e.Use(responder.NewDefault())
 
 	// {"name":"tree.xie","id":123}
-	d.GET("/", func(c *elton.Context) (err error) {
+	e.GET("/", func(c *elton.Context) (err error) {
 		c.Body = &struct {
 			Name string `json:"name"`
 			ID   int    `json:"id"`
@@ -31,7 +31,10 @@ func main() {
 		return
 	})
 
-	d.ListenAndServe(":7001")
+	er := e.ListenAndServe(":3000")
+	if err != nil {
+		panic(err)
+	}
 }
 ```
 
