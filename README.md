@@ -1,5 +1,7 @@
 # elton-responder
 
+The middleware has been archived, please use the middleware of [elton](https://github.com/vicanso/elton).
+
 [![Build Status](https://img.shields.io/travis/vicanso/elton-responder.svg?label=linux+build)](https://travis-ci.org/vicanso/elton-responder)
 
 Responder middleware for elton, it can convert `Context.Body` to json data. Using this middleware, it's more simple for successful response. More response type can be supported through custom marshal function and content type.
